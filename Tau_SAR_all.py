@@ -84,7 +84,7 @@ meta_C1_3,files_3,time_3,T_300_C1_3,Mr_300_C1_3,Hc_300_C1_3,campo_max_3,mag_max_
 meta_C1_4,files_4,time_4,T_300_C1_4,Mr_300_C1_4,Hc_300_C1_4,campo_max_4,mag_max_4,xi_M_0_4,frecuencia_fund_4,magnitud_fund_0_4,dphi_fem_0_4,SAR_300_C1_4,tau_300_C1_4,N3 = lector_resultados(resultados_C1_300[3])
 
 #% Tau vs Temp
-fig,((ax,ax2),(ax3,ax4))= plt.subplots(nrows=2,ncols=2,figsize=(12,8),constrained_layout=True,sharex=True)
+fig,((ax,ax2),(ax3,ax4))= plt.subplots(nrows=2,ncols=2,figsize=(12,6),constrained_layout=True,sharex=True)
 
 ax.plot(T_300_C1_1,tau_300_C1_1,'.-',label='1')
 ax.plot(T_300_C1_2,tau_300_C1_2,'.-',label='2')
@@ -120,7 +120,7 @@ for a in [ax,ax2,ax3,ax4]:
     
 ax3.set_xlabel('T (°C)')
 ax4.set_xlabel('T (°C)')
-plt.suptitle('Comparativa C1 - NE5X - 300 kHz 57 kA/m')
+plt.suptitle('Comparativa NE5X - C1\n300 kHz 57 kA/m')
 plt.savefig('C1_300_57_NE5X_comparativa.png',dpi=300)
 plt.show()
 
@@ -133,7 +133,7 @@ meta_C2_3,files_3,time_3,T_300_C2_3,Mr_C2_3,Hc_C2_3,campo_max_3,mag_max_3,xi_M_0
 meta_C2_4,files_4,time_4,T_300_C2_4,Mr_C2_4,Hc_C2_4,campo_max_4,mag_max_4,xi_M_0_4,frecuencia_fund_4,magnitud_fund_0_4,dphi_fem_0_4,SAR_300_C2_4,tau_300_C2_4,N3 = lector_resultados(resultados_C2_300[3])
 
 #% Tau vs Temp
-fig,((ax,ax2),(ax3,ax4))= plt.subplots(nrows=2,ncols=2,figsize=(12,8),constrained_layout=True,sharex=True)
+fig,((ax,ax2),(ax3,ax4))= plt.subplots(nrows=2,ncols=2,figsize=(12,6),constrained_layout=True,sharex=True)
 
 ax.plot(T_300_C2_1,tau_300_C2_1,'.-',label='1')
 ax.plot(T_300_C2_2,tau_300_C2_2,'.-',label='2')
@@ -170,7 +170,7 @@ for a in [ax,ax2,ax3,ax4]:
     
 ax3.set_xlabel('T (°C)')
 ax4.set_xlabel('T (°C)')
-plt.suptitle('Comparativa C2 - NE5X - 300 kHz 57 kA/m')
+plt.suptitle('Comparativa NE5X - C2\n300 kHz 57 kA/m')
 plt.savefig('C2_300_57_NE5X_comparativa.png',dpi=300)
 plt.show()
 
@@ -213,24 +213,20 @@ tau_300_C1_err = []
 # Cálculo de promedios y desviaciones estándar por rango de temperatura
 for i in range(len(temperature_ranges_all)):
     # Promedio para T_300
-    Temp_300_C1.append(np.mean(np.concatenate([T_300_C1_1[indices_temp_300_150_C1_1[i]],
-                                               T_300_C1_2[indices_temp_300_150_C1_2[i]],
+    Temp_300_C1.append(np.mean(np.concatenate([T_300_C1_2[indices_temp_300_150_C1_2[i]],
                                             T_300_C1_3[indices_temp_300_150_C1_3[i]],
                                             T_300_C1_4[indices_temp_300_150_C1_4[i]]])))
 
-    Temp_300_C1_err.append(np.std(np.concatenate([T_300_C1_1[indices_temp_300_150_C1_1[i]],
-                                                  T_300_C1_2[indices_temp_300_150_C1_2[i]],
+    Temp_300_C1_err.append(np.std(np.concatenate([T_300_C1_2[indices_temp_300_150_C1_2[i]],
                                                 T_300_C1_3[indices_temp_300_150_C1_3[i]],
                                                 T_300_C1_4[indices_temp_300_150_C1_4[i]]]))),
 
-    tau_300_C1.append(np.mean(np.concatenate([tau_300_C1_1[indices_temp_300_150_C1_1[i]],
-                                            tau_300_C1_2[indices_temp_300_150_C1_2[i]],
+    tau_300_C1.append(np.mean(np.concatenate([tau_300_C1_2[indices_temp_300_150_C1_2[i]],
                                            tau_300_C1_3[indices_temp_300_150_C1_3[i]],
                                            tau_300_C1_4[indices_temp_300_150_C1_4[i]]])))
 
     tau_300_C1_err.append(np.std(np.concatenate([tau_300_C1_2[indices_temp_300_150_C1_2[i]],
-                                                 tau_300_C1_1[indices_temp_300_150_C1_1[i]],
-                                            tau_300_C1_3[indices_temp_300_150_C1_3[i]],
+                                                 tau_300_C1_3[indices_temp_300_150_C1_3[i]],
                                             tau_300_C1_4[indices_temp_300_150_C1_4[i]]])))
 
 #remuevo elementos nan
@@ -279,7 +275,7 @@ tau_300_C2_err = [i for i in tau_300_C2_err if ~np.isnan(i)]
 
 #%%
 
-fig,(ax,ax2)=plt.subplots(nrows=2,figsize=(12,8),constrained_layout=True,sharex=True)
+fig,(ax,ax2)=plt.subplots(nrows=2,figsize=(11,7),constrained_layout=True,sharex=True)
 ax.set_title('All',loc='left')
 ax.plot(T_300_C1_1,tau_300_C1_1,'-',label='C1')
 ax.plot(T_300_C1_2,tau_300_C1_2,'-',label='C1')
@@ -301,6 +297,7 @@ for a in [ax,ax2]:
     a.set_ylabel(r'$\tau$ (s)')
     a.legend(title=f'''C1 = {meta_C1_2["Concentracion g/m^3"]/1e3:.1f} g/L    C2 = {meta_C2_2["Concentracion g/m^3"]/1e3:.1f} g/L''',ncol=2)
 plt.suptitle(f'$\\tau$ vs T\nNE5X en SV\n$f$ = 300 kHz    $H_0$ = 57 kA/m',fontsize=13)
+plt.savefig('C1_C2_comparacion.png',dpi=300)
 #%% Busco las de 300 57 en NE5X para comparar 
 resultados_C0_300 = glob(os.path.join('./C0', '*resultados*.txt'))
 resultados_C0_300.sort()

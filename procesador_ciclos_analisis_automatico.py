@@ -250,7 +250,7 @@ if templog:
         plt.legend(loc='lower right')
         plt.grid()
         plt.title('Temperatura de la muestra',fontsize=18)
-        #plt.savefig(os.path.join(output_dir,os.path.commonprefix(fnames_m)+'_templog.png'),dpi=300,facecolor='w')
+        plt.savefig(os.path.join(output_dir,os.path.commonprefix(fnames_m)+'_templog.png'),dpi=300,facecolor='w')
         plt.show()
 
     except IndexError:
@@ -663,7 +663,7 @@ fnames_m=np.array(fnames_m)
 
 if detector_ciclos_descartables:
     archivos_in_out=10
-    porcentaje_diferencia=40#%
+    porcentaje_diferencia=100#%
     print(f'Se identifican archivos cuya Mag maxima difieren un {porcentaje_diferencia}% de la')
     print(f'Mag max promedio = {np.mean(Mag_max[archivos_in_out:-archivos_in_out]):.0f}({np.std(Mag_max[archivos_in_out:-archivos_in_out]):.0f}) A/m de los {len(Mag_max[archivos_in_out:-archivos_in_out])} valores centrales.')
 
@@ -715,7 +715,7 @@ if graficos['Ciclos_HM_m_todos']==1:
     
     plt.plot(Ciclos_eje_H[-1]/1000,Ciclos_eje_M[-1],'-',color='k') #Descancelacion
 
-plt.legend(title='Ciclos descartados',ncol=2,loc='best',fancybox=True)
+# plt.legend(title='Ciclos descartados',ncol=2,loc='best',fancybox=True)
 
 # # Configurar la barra de colores
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -1113,6 +1113,39 @@ else:
 # axs.legend()
 # plt.title('Cociente de magnitudes de armonicos')
 # plt.savefig(os.path.commonprefix(fnames_m)+'_cociente_magnitudes.png',dpi=200,facecolor='w')
+#%% Ultimo templog
+fig,ax=plt.subplots(figsize=(10,4),constrained_layout=True)
+ax.scatter(time_m,temp_m,color=colors,label='Temperatura muestra',zorder=1)
+ax.plot(t_full,T_full,'-',label='Templog (Rugged O201)',zorder=2)
+# ax.plot(tiempo_interpolado,temp
+# eratura_interpolada,'-',label='Temperatura interpolada')
+
+plt.xlabel('t (s)')
+plt.ylabel('T (°C)')
+plt.legend(loc='lower right')
+plt.grid()
+plt.xlim(0,t_full[-1])
+plt.title('Temperatura de la muestra',fontsize=15,y=0.9)
+plt.savefig(os.path.join(output_dir,os.path.commonprefix(list(fnames_m))+'_templog.png'),dpi=300,facecolor='w')
+plt.show()
+#%%
+
+fig,ax=plt.subplots(figsize=(8,3.2),constrained_layout=True)
+ax.scatter(time_m,temp_m,color=colors,label='Temperatura muestra',zorder=1)
+ax.plot(t_full,T_full,'-',label='Templog (Rugged O201)',zorder=2)
+# ax.plot(tiempo_interpolado,temp
+# eratura_interpolada,'-',label='Temperatura interpolada')
+
+plt.xlabel('t (s)')
+plt.ylabel('T (°C)')
+plt.legend(loc='lower right')
+plt.grid()
+plt.xlim(0,t_full[-1])
+# plt.title('Temperatura de la muestra',fontsize=15,y=0.9)
+plt.xlim(160,180)
+plt.ylim(-15,0)
+plt.savefig(os.path.join(output_dir,os.path.commonprefix(list(fnames_m))+'_templog_zoom.png'),dpi=300,facecolor='w')
+plt.show()
 
 
 #%%%
