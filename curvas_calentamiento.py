@@ -16,7 +16,7 @@ from datetime import datetime,timedelta
 import matplotlib as mpl
 
 #%%
-def lector_templog(directorio):
+def lector_templog(directorio,rango_T_fijo=True):
     '''
     Busca archivo *templog.csv en directorio especificado.
     muestras = False plotea solo T(dt). 
@@ -31,8 +31,76 @@ def lector_templog(directorio):
     temp_CH2= pd.Series(data['T_CH2']).to_numpy(dtype=float)
     timestamp=np.array([datetime.strptime(date,'%Y/%m/%d %H:%M:%S') for date in data['Timestamp']]) 
     return timestamp,temp_CH1, temp_CH2
+
+def procesar_temperatura(directorio_FF,rango_T_fijo=True):
+    # Obtener archivos de datos y archivos de templog
+    paths_m_FF = glob(os.path.join(directorio_FF, '*.txt'))
+    paths_m_FF.sort()
+    paths_T_FF = glob(os.path.join(directorio_FF, '*templog*'))
     
-#%% FF
+    # Levantar fechas de archivos grabadas en meta
+    Fechas_FF = []
+    for fp in paths_m_FF:
+        with open(fp, 'r') as f:
+            fecha_in_file = f.readline()
+            Fechas_FF.append(fecha_in_file.split()[-1])
+    
+    # Obtener timestamps y temperaturas del templog
+    timestamp_FF, temperatura_FF, __ = lector_templog(paths_T_FF[0])
+    
+    # Calcular tiempos completos en segundos
+    t_full_FF = np.array([(t - timestamp_FF[0]).total_seconds() for t in timestamp_FF])
+    T_full_FF = temperatura_FF
+
+    # Procesar las fechas y tiempos de los archivos
+    dates_FF = [datetime.strptime(f, '%y%m%d_%H:%M:%S.%f') for f in Fechas_FF[:-1]]  # datetimes con fecha de archivos
+    time_delta_FF = [t.total_seconds() for t in np.diff(dates_FF)]  # diferencia de tiempo entre archivos
+    time_delta_FF.insert(0, 0)  # Insertar el primer delta como 0
+    delta_0_FF = (dates_FF[0] - timestamp_FF[0]).total_seconds()  # diferencia entre comienzo templog y 1er archivo
+
+    # Buscar los índices de los datos de templog correspondientes al primer y último archivo
+    indx_1er_dato_FF = np.nonzero(timestamp_FF == dates_FF[0].replace(microsecond=0))[0][0]
+    indx_ultimo_dato_FF = np.nonzero(timestamp_FF == datetime.strptime(Fechas_FF[-1], '%y%m%d_%H:%M:%S.%f').replace(microsecond=0))[0][0]
+    
+    # Interpolación entre el primer y último ciclo
+    interp_func = interp1d(t_full_FF, T_full_FF, kind='linear')
+    t_interp_FF = np.round(np.arange(t_full_FF[indx_1er_dato_FF], t_full_FF[indx_ultimo_dato_FF] + 1.01, 0.01), 2)
+    T_interp_FF = np.round(interp_func(t_interp_FF), 2)
+
+    # Calcular t_FF y T_FF a partir de los datos
+    t_FF = np.round(delta_0_FF + np.cumsum(time_delta_FF), 2)
+    T_FF = np.array([T_interp_FF[np.flatnonzero(t_interp_FF == t)[0]] for t in t_FF])
+    
+    cmap = mpl.colormaps['jet'] #'viridis'
+    if rango_T_fijo==True:
+        norm_T_FF = (np.array(T_FF) - (-200)) / (50 - (-200))
+    else:
+        norm_T_FF = (np.array(T_FF) - np.array(T_FF).min()) / (np.array(T_FF).max() - np.array(T_FF).min())
+    
+    colors_FF = cmap(norm_T_FF)
+    
+    
+    fig,ax=plt.subplots(figsize=(10,5.5),constrained_layout=True)
+    ax.plot(t_full_FF,T_full_FF,'.-',label=paths_T_FF[0].split('/')[-1])
+    ax.plot(t_interp_FF,T_interp_FF,'-',label='Temperatura interpolada')
+    ax.scatter(t_FF,T_FF,color=colors_FF,label='Temperatura muestra')
+
+    plt.xlabel('t (s)')
+    plt.ylabel('T (°C)')
+    plt.legend(loc='lower right')
+    plt.grid()
+    plt.title('Temperatura de la muestra',fontsize=18)
+    #plt.savefig(os.path.join(output_dir,os.path.commonprefix(fnames_m)+'_templog.png'),dpi=300,facecolor='w')
+    plt.show()
+    
+    # Ajustar tiempos para que arranquen desde 0
+    t_FF = t_FF - t_interp_FF[0]
+    t_interp_FF = t_interp_FF - t_interp_FF[0]
+    
+
+    return t_FF, T_FF, t_interp_FF, T_interp_FF , colors_FF,fig
+    
+#%% FF 
 directorio_FF = os.path.join(os.getcwd(),'C1','241010_154839') 
 paths_m_FF = glob(os.path.join(directorio_FF, '*.txt'))
 paths_m_FF.sort()
@@ -126,51 +194,141 @@ plt.title('Temperatura de la muestra',fontsize=18)
 plt.show()
 
 
+# %% Implementacion
+directorios_FF = [os.path.join(os.getcwd(),'C1',f) for f in os.listdir('C1') ]
+directorios_FF.sort()
+t_FF_1,T_FF_1,t_interp_FF_1,T_interp_FF_1,c_FF_1,_=procesar_temperatura(directorios_FF[0])
+t_FF_2,T_FF_2,t_interp_FF_2,T_interp_FF_2,c_FF_2,_=procesar_temperatura(directorios_FF[1])
+t_FF_3,T_FF_3,t_interp_FF_3,T_interp_FF_3,c_FF_3,_=procesar_temperatura(directorios_FF[2])
+t_FF_4,T_FF_4,t_interp_FF_4,T_interp_FF_4,c_FF_4,_=procesar_temperatura(directorios_FF[3])
+
+directorios_SV = [os.path.join(os.getcwd(),'SV',f) for f in os.listdir('SV') ]
+directorios_SV.sort()
+t_SV_1,T_SV_1,t_interp_SV_1,T_interp_SV_1,c_SV_1,_=procesar_temperatura(directorios_SV[0])
+t_SV_2,T_SV_2,t_interp_SV_2,T_interp_SV_2,c_SV_2,_=procesar_temperatura(directorios_SV[1])
+t_SV_3,T_SV_3,t_interp_SV_3,T_interp_SV_3,c_SV_3,_=procesar_temperatura(directorios_SV[2])
+
+# %% Derivadas
+dT_SV_1 = np.gradient(T_SV_1,t_SV_1)
+dT_SV_2 = np.gradient(T_SV_2,t_SV_2)
+dT_SV_3 = np.gradient(T_SV_3,t_SV_3)
+indx_max_SV_1 = np.nonzero(dT_SV_1==max(dT_SV_1)) 
+indx_max_SV_2 = np.nonzero(dT_SV_2==max(dT_SV_2))
+indx_max_SV_3 = np.nonzero(dT_SV_3==max(dT_SV_3))
+
+dT_FF_1 = np.gradient(T_FF_1,t_FF_1)
+dT_FF_2 = np.gradient(T_FF_2,t_FF_2)
+dT_FF_3 = np.gradient(T_FF_3,t_FF_3)
+dT_FF_4 = np.gradient(T_FF_4,t_FF_4)
+indx_max_FF_1 = np.nonzero(dT_FF_1==max(dT_FF_1)) 
+indx_max_FF_2 = np.nonzero(dT_FF_2==max(dT_FF_2))
+indx_max_FF_3 = np.nonzero(dT_FF_3==max(dT_FF_3))
+indx_max_FF_4 = np.nonzero(dT_FF_4==max(dT_FF_4))
+
+#%% Grafico SV y FF+SV
+fig,(ax,ax2)=plt.subplots(nrows=2,figsize=(11,8),constrained_layout=True)
+
+ax.plot(t_interp_SV_1,T_interp_SV_1,'-',label='T interp SV_1')
+ax.plot(t_interp_SV_2,T_interp_SV_2,'-',label='T interp SV_2')
+ax.plot(t_interp_SV_3,T_interp_SV_3,'-',label='T interp SV_3')
+
+ax.scatter(t_SV_1,T_SV_1,color=c_SV_1,label='T SV_1',marker='.')
+ax.scatter(t_SV_2,T_SV_2,color=c_SV_2,label='T SV_2',marker='.')
+ax.scatter(t_SV_3,T_SV_3,color=c_SV_3,label='T SV_3',marker='.')
+
+ax.scatter(t_SV_1[indx_max_SV_1],T_SV_1[indx_max_SV_1],marker='D',zorder=2,color='blue',label=f'dT/dt = {max(dT_SV_1):.2f} ºC/s')
+ax.scatter(t_SV_2[indx_max_SV_2],T_SV_2[indx_max_SV_2],marker='D',zorder=2,color='orange',label=f'dT/dt = {max(dT_SV_2):.2f} ºC/s')
+ax.scatter(t_SV_3[indx_max_SV_3],T_SV_3[indx_max_SV_3],marker='D',zorder=2,color='green',label=f'dT/dt = {max(dT_SV_3):.2f} ºC/s')
+
+axin = ax.inset_axes([0.35, 0.15, 0.64, 0.58])
+axin.plot(t_SV_1,dT_SV_1,'.-',lw=0.7,label='dT/dt SV_1')
+axin.plot(t_SV_2,dT_SV_2,'.-',lw=0.7,label='dT/dt SV_2')
+axin.plot(t_SV_3,dT_SV_3,'.-',lw=0.7,label='dT/dt SV_3')
+
+ax2.plot(t_interp_FF_1,T_interp_FF_1,'-',label='T interp FF_1')
+ax2.plot(t_interp_FF_3,T_interp_FF_3,'-',label='T interp FF_3')
+ax2.plot(t_interp_FF_2,T_interp_FF_2,'-',label='T interp FF_2')
+ax2.plot(t_interp_FF_4,T_interp_FF_4,'-',label='T interp FF_4')
+
+ax2.scatter(t_FF_1,T_FF_1,color=c_FF_1,marker='.',label='T FF_1')
+ax2.scatter(t_FF_2,T_FF_2,color=c_FF_2,marker='.',label='T FF_2')
+ax2.scatter(t_FF_3,T_FF_3,color=c_FF_3,marker='.',label='T FF_3')
+ax2.scatter(t_FF_4,T_FF_4,color=c_FF_4,marker='.',label='T FF_4')
+
+ax2.scatter(t_FF_1[indx_max_FF_1],T_FF_1[indx_max_FF_1],marker='D',zorder=2,color='blue',label=f'dT/dt = {max(dT_FF_1):.2f} ºC/s')
+ax2.scatter(t_FF_2[indx_max_FF_2],T_FF_2[indx_max_FF_2],marker='D',zorder=2,color='orange',label=f'dT/dt = {max(dT_FF_2):.2f} ºC/s')
+ax2.scatter(t_FF_3[indx_max_FF_3],T_FF_3[indx_max_FF_3],marker='D',zorder=2,color='green',label=f'dT/dt = {max(dT_FF_3):.2f} ºC/s')
 
 
 
+axin2 = ax2.inset_axes([0.35, 0.15, 0.64, 0.50])
+axin2.plot(t_FF_1,dT_FF_1,'.-',lw=0.7,label='dT/dt FF_1')
+axin2.plot(t_FF_2,dT_FF_2,'.-',lw=0.7,label='dT/dt FF_2')
+axin2.plot(t_FF_3,dT_FF_3,'.-',lw=0.7,label='dT/dt FF_3')
+axin2.plot(t_FF_4,dT_FF_4,'.-',lw=0.7,label='dT/dt FF_4')
+for ai in [axin,axin2]:
+    ai.set_xlabel('t (s)')
+    ai.set_ylabel('dT/dt (ºC/s)')
+    ai.legend(ncol=1)
+    ai.grid()
 
+# ax2.plot(t_interp_FF_1,cambio_T_interp_FF_1)
+# ax2.plot(t_interp_FF_2,cambio_T_interp_FF_2)
+# ax2.plot(t_interp_FF_3,cambio_T_interp_FF_3)
+# ax2.plot(t_interp_FF_4,cambio_T_interp_FF_4)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%%
-
-fig,ax=plt.subplots(figsize=(10,5.5),constrained_layout=True)
-
-ax.plot(t_interp_FF-t_interp_FF[0],T_interp_FF,'-',label='T interp FF')
-ax.scatter(t_FF-t_interp_FF[0],T_FF,color=colors_FF,label='T FF')
-
-ax.plot(t_interp_SV-t_interp_SV[0],T_interp_SV,'-',label='T interp SV')
-ax.scatter(time_SV-t_interp_SV[0],T_SV,color=colors_SV,label='T FF')
-
-
-plt.xlabel('t (s)')
-plt.ylabel('T (°C)')
-plt.legend(loc='lower right',ncol=2)
-plt.grid()
-plt.title('Temperatura de la muestra',fontsize=18)
+for a in [ax,ax2]:
+    a.grid()
+    a.set_xlim(0,)
+    a.set_ylabel('T (°C)')
+    
+ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+ax2.legend(loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+    
+ax.set_title('SV',loc='left')
+ax2.set_title('SV + NP',loc='left')
+ax2.set_xlabel('t (s)')
 plt.show()
 
-# %%
+#%% Resto a todos el templog del SV 1 interpolando 
+%matplotlib inline
+
+from scipy.interpolate import splev  , splrep
+
+interp_func_1 = splrep(t_SV_1,T_SV_1)
+T_aux_FF_1=splev(t_FF_1,interp_func_1)
+T_aux_FF_2=splev(t_FF_2,interp_func_1)
+T_aux_FF_3=splev(t_FF_3,interp_func_1)
+T_aux_FF_4=splev(t_FF_4,interp_func_1)
+
+cambio_T_FF_1 = T_FF_1 - T_aux_FF_1
+cambio_T_FF_2 = T_FF_2 - T_aux_FF_2
+cambio_T_FF_3 = T_FF_3 - T_aux_FF_3
+cambio_T_FF_4 = T_FF_4 - T_aux_FF_4
+
+
+fig,(ax,ax2)=plt.subplots(nrows=2,figsize=(10,6),constrained_layout=True)
+
+ax.plot(t_FF_1,T_FF_1,'.-',label='T FF_1')
+ax.plot(t_FF_2,T_FF_2,'.-',label='T FF_2')
+ax.plot(t_FF_3,T_FF_3,'.-',label='T FF_3')
+ax.plot(t_FF_4,T_FF_4,'.-',label='T FF_4')
+
+ax.plot(t_SV_1,T_SV_1,'.-',label='T SV_1')
+
+
+ax2.plot(t_FF_1,cambio_T_FF_1,'.-',label='$\Delta$T FF_1')
+ax2.plot(t_FF_2,cambio_T_FF_2,'.-',label='$\Delta$T FF_2')
+ax2.plot(t_FF_3,cambio_T_FF_3,'.-',label='$\Delta$T FF_3')
+ax2.plot(t_FF_4,cambio_T_FF_4,'.-',label='$\Delta$T FF_4')
+for a in [ax,ax2]:
+    a.legend(loc='lower right',ncol=2)
+    a.grid()
+    a.set_xlim(0,160)  
+    
+    #a.set_xlabel('t (s)')
+ax2.set_ylabel('$\Delta$T (°C)')
+ax.set_title('Temperatura de la muestra',loc='left')
+ax2.set_title('cambio en Temperatura por NP',loc='left')
+ax2.set_xlabel('t (s)')
+plt.show()
