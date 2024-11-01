@@ -316,33 +316,46 @@ def indices_estrictamente_crecientes(arr):
     return indices
 
 indx_1=indices_estrictamente_crecientes(T_FF_1)
+indx_2=indices_estrictamente_crecientes(T_FF_2)
+indx_3=indices_estrictamente_crecientes(T_FF_3)
 
-
-
-# #%%
 T_FF_1=T_FF_1[indx_1]
 dT_FF_1=dT_FF_1[indx_1]
 
+T_FF_2=T_FF_2[indx_2]
+dT_FF_2=dT_FF_2[indx_2]
 
-func_interp_test=PchipInterpolator(T_FF_1,dT_FF_1)
-dT_interp_test=func_interp_test(T_SV_3)
-resta_test= dT_interp_test-dT_SV_3
+T_FF_3=T_FF_3[indx_3]
+dT_FF_3=dT_FF_3[indx_3]
+
+
+func_interp_1=PchipInterpolator(T_FF_1,dT_FF_1)
+func_interp_2=PchipInterpolator(T_FF_2,dT_FF_2)
+func_interp_3=PchipInterpolator(T_FF_3,dT_FF_3)
+
+dT_interp_1_new=func_interp_1(T_SV_3)
+dT_interp_2_new=func_interp_2(T_SV_3)
+dT_interp_3_new=func_interp_3(T_SV_3)
+
+resta_1= dT_interp_1_new-dT_SV_3
+resta_2= dT_interp_2_new-dT_SV_3
+resta_3= dT_interp_3_new-dT_SV_3
+
 #%%
 fig,(ax,ax2,ax3)=plt.subplots(nrows=3,figsize=(10,9),constrained_layout=True,sharex=True)
 
-ax.plot(T_SV_1,dT_SV_1,'.-',label='dT SV_1',zorder=2)
+ax.plot(T_SV_3,dT_SV_3,'.-',label='dT SV_3',zorder=2)
 ax.plot(T_FF_1,dT_FF_1,'.-',label='dT FF_1',zorder=2)
 
 
-ax2.plot(T_SV_2,dT_SV_2,'.-',label='dT SV_2',zorder=2)
-ax2.plot(T_interp_SV_2,dT_interp_SV_2,'.-',label='dT interp SV_2',zorder=1)
+ax2.plot(T_SV_3,dT_SV_3,'.-',label='dT SV_3',zorder=3)
+ax2.plot(T_FF_2,dT_FF_2,'.-',label='dT FF_2',zorder=1)
 
-# ax3.plot(T_SV_3,dT_SV_3,'.-',label='dT SV_3',zorder=2)
-
-ax3.plot(T_FF_1,dT_FF_1,'.-',label='dT FF_1',zorder=2)
+ax3.plot(T_FF_3,dT_FF_3,'.-',label='dT FF_3',zorder=2)
 ax3.plot(T_SV_3,dT_SV_3,'o-',label='dT  SV_3',zorder=1)
-ax3.plot(T_SV_3,dT_interp_test,'.-',label='dT FF_test',zorder=2)
-ax3.plot(T_SV_3,resta_test,'.-',label='resta_test',zorder=2)
+
+# ax3.plot(T_SV_3,dT_interp_1_new,'.-',label='dT FF_test',zorder=2)
+# ax3.plot(T_SV_3,resta_test,'.-',label='resta_1',zorder=2)
 
 ax.set_title('dT/dt vs T  -  SV',loc='left')
 ax2.set_title('dT/dt vs T -  SV intepolado',loc='left')
