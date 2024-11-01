@@ -422,7 +422,6 @@ ax2.set_ylabel('$\Delta$T (°C)')
 ax.set_title('Temperatura de la muestra',loc='left')
 ax2.set_title('$\Delta$T por NP',loc='left')
 ax2.set_xlabel('t (s)')
-<<<<<<< HEAD
 plt.savefig('cambio_enT_porNP.png',dpi=300)
 plt.show()
 
@@ -520,18 +519,4 @@ ax.set_xlabel('T (°C)')
 ax.set_ylabel('SAR (W/g)')
 plt.savefig('sar_vs_Temp.png',dpi=300)
 plt.show()
-=======
-
-plt.show()
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-# Ahora los templogs del enfriamiento con Loc de fallas
-directorios_FF_LF = [os.path.join(os.getcwd(),'LF',f) for f in os.listdir('LF') ]
-directorios_FF_LF.sort()
-t_LF_1,T_LF_1,t_interp_LF_1,T_interp_LF_1,c_LF_1,_=procesar_temperatura(directorios_FF_LF[0])
-t_LF_2,T_LF_2,t_interp_LF_2,T_interp_LF_2,c_LF_2,_=procesar_temperatura(directorios_FF_LF[1],rango_T_fijo=(-200,100))
-# t_FF_3,T_FF_3,t_interp_FF_3,T_interp_FF_3,c_FF_3,_=procesar_temperatura(directorios_FF[2])
-# t_FF_4,T_FF_4,t_interp_FF_4,T_interp_FF_4,c_FF_4,_=procesar_temperatura(directorios_FF[3])
-
-
->>>>>>> 6677b983bdab0f75e04fb0ef9c540a15bcaf3999
 # %%
